@@ -55,7 +55,7 @@ ROOT_URLCONF = 'Recipes.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
+        'DIRS': []
         ,
         'APP_DIRS': True,
         'OPTIONS': {
@@ -70,18 +70,20 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'Recipes.wsgi.application'
+import environ
 
-
+env = environ.Env()
+environ.Env.read_env()
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+import dj_database_url
+import os
+# Read the DATABASE_URL environment variable
+DATABASE_URL = os.getenv('DATABASE_URL')
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default=DATABASE_URL)
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
