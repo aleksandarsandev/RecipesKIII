@@ -25,31 +25,37 @@ SECRET_KEY = 'django-insecure-&cg^i19_56p)ar#t_#3e^qngp6=h(4_do-(coth9!dexw4!@^_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'RecipesApp',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'corsheaders',
+    'djongo',
     'django.contrib.staticfiles',
-    'RecipesApp'
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+]
 ROOT_URLCONF = 'Recipes.urls'
 
 TEMPLATES = [
@@ -72,17 +78,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Recipes.wsgi.application'
 import environ
 
-env = environ.Env()
-environ.Env.read_env()
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+# Read the DATABASE_URL environment variable
 import dj_database_url
 import os
-# Read the DATABASE_URL environment variable
-DATABASE_URL = os.getenv('DATABASE_URL')
+env = environ.Env()
+environ.Env.read_env()
+
 
 DATABASES = {
-    'default': dj_database_url.config(default=DATABASE_URL)
+    'default': {
+        # 'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE' : 'djongo',
+        'NAME': 'recipes',
+        'ENFORCE_SCHEMA': False,
+        # 'USERNAME': 'admin',
+        # 'PASSWORD': 'admin',
+        'CLIENT': {
+            'host': 'mongodb://db:27017/recipes',
+        }
+    }
 }
 
 # Password validation

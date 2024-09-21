@@ -68,6 +68,7 @@
             font-size: 18px;
             font-family: 'Georgia', serif;
         }
+
         .btn-d {
             display: inline-block;
             padding: 13px;
@@ -125,20 +126,25 @@
             {% for recipe in recipes %}
                 <li>
                     <div>
-                        <a href="{% url 'recipe_detail' pk=recipe.pk %}">{{ recipe.name }}</a>
+                        <a href="{% url 'recipe_detail' pk=recipe.id %}">{{ recipe.name }}</a>
                     </div>
                     <div>
-                        <a class="btn-d" href="{% url 'recipe_detail' pk=recipe.pk %}">View Details</a>
-                        <a class="btn-d" href="{% url 'recipe_edit' pk=recipe.pk %}">Edit</a>
-                        <form action="{% url 'recipe_delete' pk=recipe.pk %}" method="post" style="display:inline;">
+                        <a class="btn-d" href="{% url 'recipe_detail' pk=recipe.id %}">View Details</a>
+                        <a class="btn-d" href="{% url 'recipe_edit' pk=recipe.id %}">Edit</a>
+                        <form action="{% url 'recipe_delete' pk=recipe.id %}" method="post" style="display:inline;">
                             {% csrf_token %}
-                            <a href="{% url 'recipe_delete' pk=recipe.pk %}" class="btn btn-danger"
+                            <a href="{% url 'recipe_delete' pk=recipe.id %}" class="btn btn-danger"
                                type="submit">Delete</a>
                         </form>
                     </div>
                 </li>
             {% endfor %}
         </ul>
+        <form action="{% url 'delete_all_recipes' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button class="btn btn-danger" type="submit">Delete All</button>
+        </form>
+
     {% else %}
         <div class="no-recipes">
             No recipes in the list.
