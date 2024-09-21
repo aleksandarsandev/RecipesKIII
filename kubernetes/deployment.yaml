@@ -4,9 +4,8 @@ metadata:
   name: recipes-config
   namespace: recipes-kiii
 data:
-  POSTGRES_DB: "kiii"
-  POSTGRES_HOST: "database"
-  POSTGRES_URL: "postgres-service.recipes-kiii.svc.cluster.local"
+  DATABASE_NAME: "recipes"
+  DATABASE_HOST: "mongo-service"
 ---
 apiVersion: v1
 kind: Secret
@@ -15,21 +14,20 @@ metadata:
   namespace: recipes-kiii
 type: Opaque
 data:
-  POSTGRES_USER: cG9zdGdyZXM=
-  POSTGRES_PASSWORD: YWRtaW4=
+  MONGODB_USERNAME: ""
+  MONGODB_PASSWORD: ""
 ---
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
-  name: postgres-pv
+  name: mongo-pvc
   namespace: recipes-kiii
 spec:
-  capacity:
-    storage: 10Gi
   accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: /mnt/data
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -52,30 +50,54 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: POSTGRES_DATABASE
+            - name: DATABASE_NAME
               valueFrom:
                 configMapKeyRef:
                   name: recipes-config
-                  key: POSTGRES_DB
-            - name: POSTGRES_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: recipes-secret
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: recipes-secret
-                  key: POSTGRES_PASSWORD
-            - name: POSTGRES_URL
+                  key: DATABASE_NAME
+            - name: DATABASE_HOST
               valueFrom:
                 configMapKeyRef:
                   name: recipes-config
-                  key: POSTGRES_URL
-            - name: DATABASE_URL
-              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_URL):5432/$(POSTGRES_DB)"
-          envFrom:
-            - configMapRef:
-                name: recipes-config
-            - secretRef:
-                name: recipes-secret
+                  key: DATABASE_HOST
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-statefulset
+  namespace: recipes-kiii
+spec:
+  serviceName: "mongo-service"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: mongo:latest
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: recipes-secret
+              key: MONGODB_USERNAME
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: recipes-secret
+              key: MONGODB_PASSWORD
+        volumeMounts:
+        - name: mongo-storage
+          mountPath: /data/db
+      volumes:
+      - name: mongo-storage
+        persistentVolumeClaim:
+          claimName: mongo-pvc

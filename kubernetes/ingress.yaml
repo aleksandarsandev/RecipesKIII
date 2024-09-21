@@ -3,8 +3,6 @@ kind: Ingress
 metadata:
   name: recipes-ingress
   namespace: recipes-kiii
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
   - host: localhost
